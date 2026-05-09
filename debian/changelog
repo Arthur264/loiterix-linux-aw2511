@@ -1,3 +1,10 @@
+linux-aw2511 (6.6.98-2) UNRELEASED; urgency=medium
+
+  [ ZHANG Yuntian ]
+  * fix: Update package version
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Sat, 09 May 2026 06:35:23 +0000
+
 linux-aw2511 (0.1.0-1) unstable; urgency=medium
 
   [ "Radxa Computer Co., Ltd" ]
