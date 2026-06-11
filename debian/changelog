@@ -1,3 +1,13 @@
+linux-aw2511 (6.6.98-3) unstable; urgency=medium
+
+  [ Feng Zhang ]
+  * fix: add missing radxa-overlays-dkms dependency
+
+  [ ZHANG Yuntian ]
+  * chore: update submodules
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Thu, 11 Jun 2026 11:22:24 +0000
+
 linux-aw2511 (6.6.98-2) unstable; urgency=medium
 
   [ ZHANG Yuntian ]
