@@ -1,0 +1,15 @@
+services:
+  kernel-builder:
+    platform: linux/arm64
+    build: .
+    volumes:
+      - .:/host:ro
+      - kernel-build:/build
+      - ./out:/out
+    environment:
+      BUILD_CMD: ${BUILD_CMD:-build}
+      CCACHE_DIR: /build/ccache
+      CCACHE_MAXSIZE: ${CCACHE_MAXSIZE:-20G}
+
+volumes:
+  kernel-build:

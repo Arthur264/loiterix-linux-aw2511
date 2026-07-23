@@ -1,0 +1,5 @@
+# Keep the build context small; sources are bind-mounted / cloned at runtime.
+*
+!Dockerfile
+!docker/
+!docker/**

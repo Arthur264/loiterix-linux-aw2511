@@ -1,0 +1,35 @@
+# Paths relative to the transfer root (/host → /build/src).
+# Excluded dest files are kept across --delete (no --delete-excluded).
+
+/out/
+/.pc/
+
+# bindeb-pkg staging (contain *.o; excluding those blocks --delete of parents)
+/src/debian/
+/src/usr/
+
+# In-tree kernel build products (incremental make)
+*.o
+*.a
+*.ko
+*.cmd
+*.mod
+*.mod.c
+*.dtb
+*.dtbo
+Module.symvers
+modules.order
+modules.builtin
+modules.builtin.modinfo
+System.map
+.config
+.config.old
+.version
+.kernelrelease
+vmlinux
+vmlinux.a
+vmlinux.o
+.tmp_*
+/src/include/config/
+/src/include/generated/
+/src/arch/*/include/generated/
