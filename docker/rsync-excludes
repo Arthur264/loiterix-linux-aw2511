@@ -6,7 +6,6 @@
 
 # bindeb-pkg staging (contain *.o; excluding those blocks --delete of parents)
 /src/debian/
-/src/usr/
 
 # In-tree kernel build products (incremental make)
 *.o

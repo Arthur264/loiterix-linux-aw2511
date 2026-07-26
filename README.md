@@ -25,3 +25,23 @@ Syncs into a case-sensitive Docker volume (APFS collapses `xt_DSCP.c` /
 2. Open in [`devcontainer`](https://code.visualstudio.com/docs/devcontainers/containers)
 3. `make deb`
 
+## Install
+
+After a successful `deb` build, packages are in `./out/`. Copy them to the
+board and install (at least the image and headers; meta-packages are optional):
+
+```sh
+# on the board
+sudo apt install ./linux-image-*-aw2511_*.deb ./linux-headers-*-aw2511_*.deb
+# optional meta-packages:
+# sudo apt install ./linux-image-radxa-a733_*.deb ./linux-headers-radxa-a733_*.deb
+sudo reboot
+```
+
+Or with `dpkg`:
+
+```sh
+sudo dpkg -i linux-image-*-aw2511_*.deb linux-headers-*-aw2511_*.deb
+sudo reboot
+```
+

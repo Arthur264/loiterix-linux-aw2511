@@ -1,60 +1,52 @@
 #!/bin/sh
 set -eu
 
-# Sync host tree into a case-sensitive volume (APFS collapses xt_DSCP.c / xt_dscp.c),
-# keep prior build objects + ccache, then build.
+# Host (macOS APFS) → case-sensitive /build volume, then build with ccache + kept objects.
 
-SRC=/build/src
-KERNEL=$SRC/src
+HOST=/host
+ROOT=/build/src
+KERNEL=$ROOT/src
+OUT=/out
 
-sync_tree() {
-	mkdir -p "$SRC" /build/ccache /out
-	# Packaging trees hold excluded *.o; drop them so rsync --delete isn't blocked.
-	rm -rf "$KERNEL/debian" "$KERNEL/usr"
-	rsync -a --delete \
-		--exclude-from=/rsync-excludes \
-		/host/ "$SRC/"
-	# Submodule git dirs: sync without --delete so local module state can linger.
-	mkdir -p "$SRC/.git/modules"
-	rsync -a /host/.git/modules/ "$SRC/.git/modules/"
-}
+mkdir -p "$ROOT" /build/ccache "$OUT"
 
-# After rsync from APFS, only one spelling of each collision remains — restore both from git.
-restore_case_collisions() {
-	git -C "$1" ls-files | awk '{
-		k = tolower($0)
-		if (k in s) { print s[k]; print $0 } else s[k] = $0
-	}' | while IFS= read -r p; do
-		[ -n "$p" ] || continue
-		rm -f "$1/$p"
-		git -C "$1" checkout-index -f -- "$p"
-	done
-}
+# --- sync ---------------------------------------------------------------
+# Drop packaging leftovers that contain excluded *.o (blocks rsync --delete).
+# Keep usr/ source (Kconfig); only remove installed header subdirs.
+rm -rf "$KERNEL/debian"
+rm -rf "$KERNEL/usr/include"/*/
 
-prepare_patches() {
-	# Host .pc may claim patches applied while APFS dropped colliding files.
-	cd "$SRC"
-	rm -rf .pc
-	dpkg-source --before-build .
-	test -f "$KERNEL/arch/arm64/configs/radxa.config"
-	test -f "$KERNEL/arch/arm64/configs/radxa_custom.config"
-}
+rsync -a --delete --exclude-from=/rsync-excludes "$HOST/" "$ROOT/"
+mkdir -p "$ROOT/.git/modules"
+rsync -a "$HOST/.git/modules/" "$ROOT/.git/modules/"
 
-collect_artifacts() {
-	find /build "$SRC" -maxdepth 1 -type f \( \
-		-name 'linux-*.deb' -o -name 'linux-*.changes' -o -name 'linux-*.buildinfo' \
-	\) -exec cp -a {} /out/ \;
-	ls -lh /out
-	ccache -s 2>/dev/null || true
-}
+# --- APFS case collisions (e.g. xt_DSCP.c / xt_dscp.c) -------------------
+git -C "$KERNEL" ls-files | awk '{
+	k = tolower($0)
+	if (k in seen) { print seen[k]; print $0 } else seen[k] = $0
+}' | while IFS= read -r path; do
+	[ -n "$path" ] || continue
+	rm -f "$KERNEL/$path"
+	git -C "$KERNEL" checkout-index -f -- "$path"
+done
 
-sync_tree
-restore_case_collisions "$KERNEL"
-prepare_patches
+# --- debian patches (radxa*.config) -------------------------------------
+cd "$ROOT"
+rm -rf .pc
+dpkg-source --before-build .
+test -f "$KERNEL/arch/arm64/configs/radxa.config"
+test -f "$KERNEL/arch/arm64/configs/radxa_custom.config"
 
-cd "$SRC"
+# --- build --------------------------------------------------------------
 rm -f /build/linux-*.deb /build/linux-*.changes /build/linux-*.buildinfo \
 	./linux-*.deb ./linux-*.changes ./linux-*.buildinfo 2>/dev/null || true
 
 make "${BUILD_CMD:-build}"
-collect_artifacts
+
+# --- artifacts ----------------------------------------------------------
+find /build "$ROOT" -maxdepth 1 -type f \( \
+	-name 'linux-*.deb' -o -name 'linux-*.changes' -o -name 'linux-*.buildinfo' \
+\) -exec cp -a {} "$OUT"/ \;
+
+ls -lh "$OUT"
+ccache -s 2>/dev/null || true
