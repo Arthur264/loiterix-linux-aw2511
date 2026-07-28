@@ -3,7 +3,6 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 export DOCKER_HOST="unix://${HOME}/.orbstack/run/docker.sock"
-mkdir -p out
 
 usage() {
 	echo "Usage: $0 [build|deb|clean]   # default: build" >&2
@@ -14,6 +13,8 @@ usage() {
 cmd="${1:-build}"
 case "$cmd" in
 	build|deb|clean|distclean)
+		rm -rf out
+		mkdir -p out
 		BUILD_CMD="$cmd" docker compose run --rm --build kernel-builder
 		ls -lh out
 		;;

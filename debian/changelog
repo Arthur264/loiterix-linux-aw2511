@@ -1,3 +1,26 @@
+linux-aw2511 (6.6.98-10) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: cubie-a7z: align IMX415 CAM2 with official Radxa overlay (0x34, device_type)
+  * revert: speculative Waveshare 0x37 / 37.125 MHz MCLK
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Tue, 28 Jul 2026 19:50:00 +0300
+
+linux-aw2511 (6.6.98-8) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: cubie-a7z: Waveshare IMX415-98 I2C addr 0x37 and 37.125 MHz MCLK
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Tue, 28 Jul 2026 18:35:00 +0300
+
+linux-aw2511 (6.6.98-7) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * feat: cubie-a7z: enable UART3 on header pins 5/3 (PJ22/PJ23) by default
+  * feat: cubie-a7z: enable Radxa Camera 4K (IMX415) on CAM2 by default
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Tue, 28 Jul 2026 16:34:00 +0300
+
 linux-aw2511 (6.6.98-6) unstable; urgency=medium
 
   [ Arthur Feduniv ]
