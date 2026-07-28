@@ -1,3 +1,24 @@
+linux-aw2511 (6.6.98-6) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: UART apb clock 40MHz so CRSF 420000 works if parent stays on 480m
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Tue, 28 Jul 2026 13:49:00 +0300
+
+linux-aw2511 (6.6.98-5) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: UART apb clock 33.333MHz for 115200/420000 CRSF
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 27 Jul 2026 08:52:00 +0300
+
+linux-aw2511 (6.6.98-4) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: UART clock frequency update
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Sun, 26 Jul 2026 22:17:01 +0300
+
 linux-aw2511 (6.6.98-3) unstable; urgency=medium
 
   [ Feng Zhang ]
