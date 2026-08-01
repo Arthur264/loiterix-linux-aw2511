@@ -1,3 +1,24 @@
+linux-aw2511 (6.6.98-13) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: cubie-a7z: force USB-C host mode for soldered USB camera
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Sat, 01 Aug 2026 15:03:00 +0300
+
+linux-aw2511 (6.6.98-12) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: cubie-a7z: enable USB-C VBUS for host devices
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Sat, 01 Aug 2026 13:36:00 +0300
+
+linux-aw2511 (6.6.98-11) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: cubie-a7z: disable IMX415
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Tue, 28 Jul 2026 23:43:00 +0300
+
 linux-aw2511 (6.6.98-10) unstable; urgency=medium
 
   [ Arthur Feduniv ]
