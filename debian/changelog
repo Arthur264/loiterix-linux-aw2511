@@ -1,3 +1,10 @@
+linux-aw2511 (6.6.98-14) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: cubie-a7z: silence kernel boot logs while retaining serial console
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 03 Aug 2026 22:56:00 +0300
+
 linux-aw2511 (6.6.98-13) unstable; urgency=medium
 
   [ Arthur Feduniv ]
