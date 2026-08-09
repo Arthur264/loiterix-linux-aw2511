@@ -1,3 +1,10 @@
+linux-aw2511 (6.6.98-16) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * perf: reduce kernel boot overhead
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Sun, 09 Aug 2026 22:55:00 +0300
+
 linux-aw2511 (6.6.98-15) unstable; urgency=medium
 
   [ Arthur Feduniv ]
