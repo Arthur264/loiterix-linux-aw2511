@@ -1,3 +1,10 @@
+linux-aw2511 (6.6.98-17) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * feat: cubie-a7z: enable Waveshare IMX415-98 on CAM2 by default (I2C 0x37)
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Fri, 14 Aug 2026 21:22:00 +0300
+
 linux-aw2511 (6.6.98-16) unstable; urgency=medium
 
   [ Arthur Feduniv ]
