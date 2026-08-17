@@ -10,13 +10,21 @@ usage() {
 	exit 1
 }
 
+format_duration() {
+	local s=$1
+	printf '%02d:%02d:%02d' $((s / 3600)) $(((s % 3600) / 60)) $((s % 60))
+}
+
 cmd="${1:-build}"
 case "$cmd" in
 	build|deb|clean|distclean)
+		start_time=$(date +%s)
 		rm -rf out
 		mkdir -p out
 		BUILD_CMD="$cmd" docker compose run --rm --build kernel-builder
 		ls -lh out
+		elapsed=$(( $(date +%s) - start_time ))
+		echo "Build time: $(format_duration "$elapsed")"
 		;;
 	reset-cache)
 		docker compose down --volumes --remove-orphans

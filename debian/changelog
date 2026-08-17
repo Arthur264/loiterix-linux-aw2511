@@ -1,3 +1,46 @@
+linux-aw2511 (6.6.98-22) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: cubie-a7z: enable vinc01/vinc10/vinc11 for Radxa 4K ISP pipeline (/dev/video1)
+  * fix: vin-tdm: use pkg mode instead of LBC on SUN60IW2 (A733) for 4K YUV
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 17 Aug 2026 14:30:00 +0300
+
+linux-aw2511 (6.6.98-21) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: vin: auto-select camera input before S_FMT on /dev/video0
+  * fix: vin: prepare pipeline before ISP type/init in __vin_s_input
+  * fix: imx415: default current_wins and expose 10-bit mode only
+  * fix: cubie-a7z: use single vinc00 for IMX415 CAM2 capture
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 17 Aug 2026 13:15:00 +0300
+
+linux-aw2511 (6.6.98-20) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: imx415: add 891Mbps 4K30 register table for 37.125MHz INCK (Waveshare IMX415-98)
+  * fix: imx415: default 4K30 win size to hts/vts/pclk/mipi_bps matching 891Mbps mode
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 17 Aug 2026 12:30:00 +0300
+
+linux-aw2511 (6.6.98-19) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: cubie-a7z: route IMX415 CSI I2C/GPIOs to TWI3 PE3/PE4, PE8/PE9, csi1/mipi1
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 17 Aug 2026 11:42:00 +0300
+
+linux-aw2511 (6.6.98-18) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: imx415: fail probe on I2C NAK instead of exposing a dead /dev/video0
+  * fix: imx415: Waveshare IMX415-98 37.125 MHz MCLK and power-on delay
+  * fix: cubie-a7z: add IMX415 CAM2 sensor regulator supplies
+  * fix: persist oops/panic via pstore/ramoops; do not panic on oops
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 17 Aug 2026 10:11:00 +0300
+
 linux-aw2511 (6.6.98-17) unstable; urgency=medium
 
   [ Arthur Feduniv ]
