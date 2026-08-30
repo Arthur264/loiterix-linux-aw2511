@@ -9,7 +9,12 @@ jobs:
       with:
         fetch-depth: 0
         fetch-tags: true
-        submodules: "recursive"
+    - name: "Checkout submodules over HTTPS"
+      run: |
+        git config --global url."https://github.com/".insteadOf "git@github.com:"
+        git submodule sync --recursive
+        git submodule update --init --recursive
+      shell: "bash"
     - name: "Set up QEMU Emulation"
       uses: "docker/setup-qemu-action@v4"
       with:
@@ -119,11 +124,6 @@ jobs:
           ## Changelog for ${{ env.version }}
           ${{ env.changes }}
         tag_name: "${{ env.version }}"
-    - name: "Update Test repos"
-      uses: "RadxaOS-SDK/rsdk/.github/actions/infra-repo-update@main"
-      with:
-        test-repo: true
-        token: "${{ secrets.RSDK_APT_REPOSITORY_TOKEN }}"
 name: "Build & Release"
 "on":
   merge_group: {}
