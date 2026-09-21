@@ -1,3 +1,18 @@
+linux-aw2511 (6.6.98-24) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * feat: cubie-a7z: re-enable I2S0 ICS-43434/INMP441 capture via snd-soc-dummy
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 21 Sep 2026 22:40:00 +0300
+
+linux-aw2511 (6.6.98-23) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: cubie-a7z: disable I2S0 mic soundcard to stop boot RCU stalls
+  * fix: sound: build HDMI codec in-kernel; silence EPROBE_DEFER log spam
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Sun, 20 Sep 2026 14:05:00 +0300
+
 linux-aw2511 (6.6.98-22) unstable; urgency=medium
 
   [ Arthur Feduniv ]
