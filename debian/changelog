@@ -1,3 +1,11 @@
+linux-aw2511 (6.6.98-25) unstable; urgency=medium
+
+  [ Arthur Feduniv ]
+  * fix: imx415: enable POWER-EN early; multi-addr detect; more logs
+  * fix: cubie-a7z: IMX415 DT notes; hung-task/pstore for hang dumps
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 19 Oct 2026 21:30:00 +0300
+
 linux-aw2511 (6.6.98-24) unstable; urgency=medium
 
   [ Arthur Feduniv ]
@@ -76,8 +84,8 @@ linux-aw2511 (6.6.98-15) unstable; urgency=medium
   * feature: cubie-a7z: update submodules
 
  -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Mon, 09 Aug 2026 22:56:00 +0300
- 
- linux-aw2511 (6.6.98-14) unstable; urgency=medium
+
+linux-aw2511 (6.6.98-14) unstable; urgency=medium
 
   [ Arthur Feduniv ]
   * fix: cubie-a7z: silence kernel boot logs while retaining serial console

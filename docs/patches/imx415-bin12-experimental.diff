@@ -1,0 +1,248 @@
+--- imx415_mipi.c.committed	2026-10-26 20:36:37.905836815 +0000
++++ imx415_mipi.c	2026-10-26 20:39:57.477182875 +0000
+@@ -31,6 +31,15 @@
+ MODULE_DESCRIPTION("A low-level driver for IMX415 sensors");
+ MODULE_LICENSE("GPL");
+ 
++/* Test: bin12=1 exposes only the 1080p30 2x2-binned 12-bit mode (SGBRG12). */
++static int bin12;
++module_param(bin12, int, 0444);
++MODULE_PARM_DESC(bin12, "1: 1080p30 2x2 binned 12-bit mode only (default 0)");
++/* bin12 only: write BLKLEVEL 0x30E2 (-1 = leave sensor/table value) */
++static int bin12_blv = -1;
++module_param(bin12_blv, int, 0444);
++MODULE_PARM_DESC(bin12_blv, "bin12 only: BLKLEVEL override, -1 = unchanged");
++
+ /*
+  * Waveshare IMX415-98 has its own 37.125 MHz oscillator. Request 24 MHz so
+  * vin_set_mclk_freq() keeps csi-master on sys24M instead of reparenting it
+@@ -805,6 +814,155 @@
+ 	{0x3002, 0x00},
+ };
+ 
++/*
++ * bin12: 1920x1080@30 from 2x2 binned readout (1944x1097), 10-bit AD, 12-bit
++ * output, 594 Mbps x 4 lanes. Timing/MIPI from Rockchip imx415.c
++ * imx415_linear_12bit_1932x1096_594M_regs, INCK 37.125 MHz.
++ */
++static struct regval_list sensor_12bit_1080p30_bin_regs[] = {
++	{0x3000, 0x01},/* stanby */
++	{0x3001, 0x00},
++	{0x3008, 0x7F},
++	{0x300A, 0x5B},
++	{0x3020, 0x01},
++	{0x3021, 0x01},
++	{0x3022, 0x01},
++	{0x3024, 0x5D},/* VMAX 3165 (0xC5D), Rockchip 1932x1096 594M */
++	{0x3025, 0x0C},
++	{0x3026, 0x00},
++	{0x3028, 0x0E},/* HMAX 782 (0x30E) */
++	{0x3029, 0x03},
++	{0x3031, 0x00},
++	{0x3032, 0x01},/* MDBIT 12-bit output (2x2 sum keeps 12 bits) */
++	{0x3033, 0x07},/* SYS_MODE 594 Mbps/lane @ INCK 37.125 MHz */
++	{0x3050, 0x08},
++	{0x30C1, 0x00},
++	{0x30CF, 0x00},
++	{0x3260, 0x01},/* normal (non-HDR) mode */
++	{0x30D9, 0x02},
++	{0x30DA, 0x01},
++	{0x3116, 0x24},
++	{0x3118, 0x80},/* INCKSEL3 for 594 Mbps */
++	{0x311A, 0xE0},
++	{0x311E, 0x24},
++	{0x32D4, 0x21},
++	{0x32EC, 0xA1},
++	{0x344C, 0x2B},
++	{0x344D, 0x01},
++	{0x344E, 0xED},
++	{0x344F, 0x01},
++	{0x3450, 0xF6},
++	{0x3451, 0x02},
++	{0x3452, 0x7F},
++	{0x3453, 0x03},
++	{0x358A, 0x04},
++	{0x35A1, 0x02},
++	{0x35EC, 0x27},
++	{0x35EE, 0x8D},
++	{0x35F0, 0x8D},
++	{0x35F2, 0x29},
++	{0x36BC, 0x0C},
++	{0x36CC, 0x53},
++	{0x36CD, 0x00},
++	{0x36CE, 0x3C},
++	{0x36D0, 0x8C},
++	{0x36D1, 0x00},
++	{0x36D2, 0x71},
++	{0x36D4, 0x3C},
++	{0x36D6, 0x53},
++	{0x36D7, 0x00},
++	{0x36D8, 0x71},
++	{0x36DA, 0x8C},
++	{0x36DB, 0x00},
++	{0x3701, 0x00},
++	{0x3720, 0x00},
++	{0x3724, 0x02},
++	{0x3726, 0x02},
++	{0x3732, 0x02},
++	{0x3734, 0x03},
++	{0x3736, 0x03},
++	{0x3742, 0x03},
++	{0x3862, 0xE0},
++	{0x38CC, 0x30},
++	{0x38CD, 0x2F},
++	{0x395C, 0x0C},
++	{0x39A4, 0x07},
++	{0x39A8, 0x32},
++	{0x39AA, 0x32},
++	{0x39AC, 0x32},
++	{0x39AE, 0x32},
++	{0x39B0, 0x32},
++	{0x39B2, 0x2F},
++	{0x39B4, 0x2D},
++	{0x39B6, 0x28},
++	{0x39B8, 0x30},
++	{0x39BA, 0x30},
++	{0x39BC, 0x30},
++	{0x39BE, 0x30},
++	{0x39C0, 0x30},
++	{0x39C2, 0x2E},
++	{0x39C4, 0x2B},
++	{0x39C6, 0x25},
++	{0x3A42, 0xD1},
++	{0x3A4C, 0x77},
++	{0x3AE0, 0x02},
++	{0x3AEC, 0x0C},
++	{0x3B00, 0x2E},
++	{0x3B06, 0x29},
++	{0x3B98, 0x25},
++	{0x3B99, 0x21},
++	{0x3B9B, 0x13},
++	{0x3B9C, 0x13},
++	{0x3B9D, 0x13},
++	{0x3B9E, 0x13},
++	{0x3BA1, 0x00},
++	{0x3BA2, 0x06},
++	{0x3BA3, 0x0B},
++	{0x3BA4, 0x10},
++	{0x3BA5, 0x14},
++	{0x3BA6, 0x18},
++	{0x3BA7, 0x1A},
++	{0x3BA8, 0x1A},
++	{0x3BA9, 0x1A},
++	{0x3BAC, 0xED},
++	{0x3BAD, 0x01},
++	{0x3BAE, 0xF6},
++	{0x3BAF, 0x02},
++	{0x3BB0, 0xA2},
++	{0x3BB1, 0x03},
++	{0x3BB2, 0xE0},
++	{0x3BB3, 0x03},
++	{0x3BB4, 0xE0},
++	{0x3BB5, 0x03},
++	{0x3BB6, 0xE0},
++	{0x3BB7, 0x03},
++	{0x3BB8, 0xE0},
++	{0x3BBA, 0xE0},
++	{0x3BBC, 0xDA},
++	{0x3BBE, 0x88},
++	{0x3BC0, 0x44},
++	{0x3BC2, 0x7B},
++	{0x3BC4, 0xA2},
++	{0x3BC8, 0xBD},
++	{0x3BCA, 0xBD},
++	{0x4004, 0x48},
++	{0x4005, 0x09},
++	{0x400C, 0x00},
++	{0x4018, 0x67},
++	{0x401A, 0x27},
++	{0x401C, 0x27},
++	{0x401E, 0xB7},
++	{0x401F, 0x00},
++	{0x4020, 0x2F},
++	{0x4022, 0x4F},
++	{0x4024, 0x2F},
++	{0x4026, 0x47},
++	{0x4028, 0x27},
++	{0x4074, 0x01},
++	{0x3000, 0x00}, /* operation */
++	{0x3002, 0x00},
++};
++
+ static struct regval_list sensor_10bit_20fps_regs[] = {
+ /* ALL PIXEL  - 720Mbps - 24MHZ - 4K 20fps */
+ 	{0x3000, 0x01},/* stanby */
+@@ -1610,6 +1768,16 @@
+ };
+ #define N_FMTS ARRAY_SIZE(sensor_formats)
+ 
++static struct sensor_format_struct sensor_formats_bin12[] = {
++	{
++		.desc = "Raw RGB Bayer 12bit",
++		.mbus_code = MEDIA_BUS_FMT_SGBRG12_1X12,
++		.regs = sensor_fmt_raw,
++		.regs_size = ARRAY_SIZE(sensor_fmt_raw),
++		.bpp = 1
++	},
++};
++
+ /*
+  * Then there is the issue of window sizes.  Try to capture the info here.
+  */
+@@ -1784,6 +1952,28 @@
+ 
+ #define N_WIN_SIZES (ARRAY_SIZE(sensor_win_sizes))
+ 
++static struct sensor_win_size sensor_win_sizes_bin12[] = {
++	{  /* 1920*1080 30fps 12bit, 2x2 binned 1944x1097 centre crop, 594 Mbps */
++	 .width = 1920,
++	 .height = 1080,
++	 .hoffset = 12,	/* (1944 - 1920) / 2, even: keeps GBRG phase */
++	 .voffset = 8,	/* (1097 - 1080) / 2 rounded to even */
++	 .hts = 782,
++	 .vts = 3165,
++	 .pclk = 74250000,	/* 782 * 3165 * 30 */
++	 .mipi_bps = 594 * 1000 * 1000,
++	 .fps_fixed = 30,
++	 .bin_factor = 1,
++	 .intg_min = 8 << 4,
++	 .intg_max = (3165 - 8) << 4,
++	 .gain_min = 1<<4,
++	 .gain_max = 5631<<4,
++	 .regs = sensor_12bit_1080p30_bin_regs,
++	 .regs_size = ARRAY_SIZE(sensor_12bit_1080p30_bin_regs),
++	 .set_size = NULL,
++	},
++};
++
+ static int sensor_g_mbus_config(struct v4l2_subdev *sd, unsigned int pad,
+ 				struct v4l2_mbus_config *cfg)
+ {
+@@ -1892,6 +2082,11 @@
+ 		}
+ 	}
+ 
++	if (bin12 && bin12_blv >= 0) {
++		sensor_write(sd, 0x30E2, bin12_blv & 0xff);
++		sensor_write(sd, 0x30E3, (bin12_blv >> 8) & 0x03);
++	}
++
+ 	if (wsize->set_size)
+ 		wsize->set_size(sd);
+ 
+@@ -2052,6 +2247,15 @@
+ 	info->current_wins = &sensor_win_sizes[0];
+ 	info->fmt_num = N_FMTS;
+ 	info->win_size_num = N_WIN_SIZES;
++	if (bin12) {
++		info->fmt = &sensor_formats_bin12[0];
++		info->fmt_pt = &sensor_formats_bin12[0];
++		info->win_pt = &sensor_win_sizes_bin12[0];
++		info->current_wins = &sensor_win_sizes_bin12[0];
++		info->fmt_num = ARRAY_SIZE(sensor_formats_bin12);
++		info->win_size_num = ARRAY_SIZE(sensor_win_sizes_bin12);
++		sensor_print("bin12: 1080p30 2x2 binned 12-bit mode only\n");
++	}
+ 	info->sensor_field = V4L2_FIELD_NONE;
+ 	info->stream_seq = MIPI_BEFORE_SENSOR;
+ 	info->combo_mode = CMB_TERMINAL_RES | CMB_PHYA_OFFSET2 | MIPI_NORMAL_MODE;
