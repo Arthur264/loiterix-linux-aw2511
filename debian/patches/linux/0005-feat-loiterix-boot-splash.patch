@@ -1,72 +1,22 @@
-From ff6af1034de86211c7859814c591cdcdc31d2e77 Mon Sep 17 00:00:00 2001
+From 665c8d50b330c39af0f95ff7f791392181aef37d Mon Sep 17 00:00:00 2001
 From: Cursor Agent <cursoragent@cursor.com>
-Date: Sat, 7 Nov 2026 18:34:59 +0000
-Subject: [PATCH] feat: Add Loiterix boot splash logo and configuration
+Date: Sat, 7 Nov 2026 18:58:39 +0000
+Subject: [PATCH] feat: Replace kernel logo with Loiterix logo
 
-- Replace kernel logo with Loiterix horizontal logo (512x89, CLUT224 P3 ASCII)
-- Add radxa_splash.config framebuffer console and logo configuration
-- Relies on CONFIG_AW_FB_CONSOLE from bsp.config (Allwinner A733 BSP drivers)
+Replace standard Linux penguin logo with authentic Loiterix horizontal logo.
 
-Logo source: Figma Logo Kit node 1:6, converted to P3 ASCII PPM format
-Original dimensions: 824x144 (aspect 103:18), scaled to 512x89 for kernel
+Source: Figma Logo Kit node 1:6
+Format: P3 ASCII, CLUT224 (224 colors)
+Dimensions: 512x89 (from 824x144, aspect 103:18)
 
-Boot parameters required:
-  console=tty1 console=ttyS0,115200n8 quiet vt.global_cursor_default=0
+Relies on existing CONFIG_LOGO=y (defconfig) and CONFIG_AW_FB_CONSOLE=y
+(bsp.config). LOGO_LINUX_CLUT224 enabled by default when LOGO=y.
 
-Note: loglevel applies globally to all consoles. Kernel ring buffer preserves
-all messages for dmesg/journalctl. Serial console shows messages at configured
-loglevel. For maximum verbosity: boot with loglevel=7 debug.
-
-UNTESTED on actual hardware - requires hardware validation.
+No additional kernel config changes required.
 ---
- arch/arm64/configs/radxa_splash.config    |   37 +
  drivers/video/logo/logo_linux_clut224.ppm | 1804 +++------------------
- 2 files changed, 239 insertions(+), 1602 deletions(-)
- create mode 100644 arch/arm64/configs/radxa_splash.config
+ 1 file changed, 202 insertions(+), 1602 deletions(-)
 
-diff --git a/arch/arm64/configs/radxa_splash.config b/arch/arm64/configs/radxa_splash.config
-new file mode 100644
-index 000000000000..40f100690c1b
---- /dev/null
-+++ b/arch/arm64/configs/radxa_splash.config
-@@ -0,0 +1,37 @@
-+# Loiterix Boot Splash Configuration
-+# Enables framebuffer console with kernel logo for quiet boot experience
-+#
-+# IMPORTANT: This config fragment assumes Allwinner BSP drivers are enabled
-+# via bsp.config (CONFIG_AW_DRM=y, CONFIG_AW_FB_CONSOLE=y).
-+#
-+# Required boot parameters:
-+#   console=tty1 console=ttyS0,115200n8 quiet vt.global_cursor_default=0
-+#
-+# NOTE: loglevel applies globally. For full serial diagnostics, the kernel
-+# ring buffer preserves all messages accessible via dmesg/journalctl regardless
-+# of console loglevel. True per-console loglevel requires additional kernel
-+# parameters or ignoring_loglevel patches.
-+#
-+# Serial console (ttyS0) remains available for live monitoring at configured level
-+# Debug mode: remove 'quiet' parameter at boot (loglevel still applies)
-+# Recovery: boot with loglevel=7 or debug for maximum verbosity on all consoles
-+
-+# Framebuffer Console Support
-+# Note: CONFIG_AW_FB_CONSOLE is already enabled via bsp.config
-+# These ensure compatibility with standard FB console
-+
-+CONFIG_FRAMEBUFFER_CONSOLE=y
-+CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
-+
-+# VT Console
-+CONFIG_VT=y
-+CONFIG_VT_CONSOLE=y
-+CONFIG_VT_HW_CONSOLE_BINDING=y
-+
-+# Kernel Boot Logo
-+CONFIG_LOGO=y
-+CONFIG_LOGO_LINUX_CLUT224=y
-+
-+# Disable other architecture-specific logos
-+# CONFIG_LOGO_LINUX_MONO is not set
-+# CONFIG_LOGO_LINUX_VGA16 is not set
 diff --git a/drivers/video/logo/logo_linux_clut224.ppm b/drivers/video/logo/logo_linux_clut224.ppm
 index 3c14e43b82fe..b6e9e969da41 100644
 --- a/drivers/video/logo/logo_linux_clut224.ppm
