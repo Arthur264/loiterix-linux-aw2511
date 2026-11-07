@@ -1,49 +1,51 @@
 # Boot Splash
 
-Displays Loiterix horizontal logo on HDMI during kernel boot. Logo clears when loiterix-platform application starts.
+Displays Loiterix horizontal logo on HDMI during kernel boot with quiet defaults.
 
 ## Changes
 
-**Single file**: `drivers/video/logo/logo_linux_clut224.ppm` (logo replacement only)
+### Patch: Logo + Cursor Default
+`debian/patches/linux/0005-feat-loiterix-boot-splash.patch` modifies:
+- `drivers/video/logo/logo_linux_clut224.ppm` - Loiterix logo (512×89 P3 ASCII, ≤224 colors)
+- `drivers/tty/vt/vt.c` - Change `global_cursor_default` from `-1` to `0` (cursor off)
 
-- Source: Figma Logo Kit node 1:6 (authentic export)
-- Format: P3 ASCII, CLUT224 (224 colors), 512×89
-- Original: 824×144, aspect 103:18 preserved
-- Asset: `docs/assets/loiterix-horizontal-on-dark-original_20e5.svg`
+Source: Figma Logo Kit node 1:6 (824×144, aspect 103:18)
 
-**No kernel config changes** - uses existing:
-- CONFIG_LOGO=y (defconfig) - base logo support
-- CONFIG_LOGO_LINUX_CLUT224=y (default when LOGO=y)
-- CONFIG_AW_FB_CONSOLE=y (bsp.config) - Allwinner framebuffer
+### Config: Quiet Boot Default
+`.github/local/configs/loiterix_quiet.config`:
+- `CONFIG_CONSOLE_LOGLEVEL_DEFAULT=3` - Show errors/warnings only (KERN_ERR+)
+- `CONFIG_CONSOLE_LOGLEVEL_QUIET=3` - Same level when bootloader passes "quiet"
 
-## Boot Parameters
+Integrated via `Makefile.local` config merge.
 
-Quiet boot parameters must be configured via bootloader/userspace (not kernel config).
+### Existing Config (No Changes)
+- CONFIG_LOGO=y (defconfig)
+- CONFIG_LOGO_LINUX_CLUT224=y (auto-enabled)
+- CONFIG_AW_FB_CONSOLE=y (bsp.config)
 
-### Kernel CMDLINE Limitation
+## Boot Behavior
 
-ARM64 kernel `CONFIG_CMDLINE` options in this tree:
-- `CONFIG_CMDLINE_FROM_BOOTLOADER` (default) - uses bootloader args OR falls back to CMDLINE if bootloader empty
-- `CONFIG_CMDLINE_FORCE` - always uses CMDLINE, ignores bootloader (unsafe - breaks root= etc)
+### Quiet Boot - Kernel Native Defaults
 
-**No `CONFIG_CMDLINE_EXTEND` available** - cannot safely append kernel defaults to bootloader args.
+**No bootloader/Ansible configuration required.** Quiet boot via kernel defaults only:
 
-Setting kernel CMDLINE would either:
-1. Only apply when bootloader provides NO args (unlikely)
-2. Override critical bootloader settings (root device, console config)
+1. **Loglevel Default** (config): `CONFIG_CONSOLE_LOGLEVEL_DEFAULT=3`
+   - Shows KERN_ERR and above (errors/warnings, suppresses info/debug/notices)
+   - Bootloader can override with `loglevel=X`, `debug`, or `ignore_loglevel`
+   - Applies globally to ALL consoles including serial (`ttyS0`)
+   - Ring buffer (`dmesg`/`journalctl -b`) preserves complete log regardless
 
-### Platform Configuration
+2. **Cursor Default** (code patch): `global_cursor_default = 0`
+   - VT cursor off by default
+   - Bootloader can override with `vt.global_cursor_default=1` for debug
 
-Boot parameters configured via loiterix-platform bootloader config:
-```
-console=tty1 console=ttyS0,115200n8 quiet loglevel=3 vt.global_cursor_default=0
-```
+3. **Logo Display**: Shows during framebuffer init before console takeover
+   - With loglevel=3, minimal/no text overlay (errors only if any occur)
+   - Application clears framebuffer when ready
 
-- `quiet` - suppresses most kernel messages on consoles (not serial)
-- `loglevel=3` - limits console output to errors/warnings
-- `vt.global_cursor_default=0` - hides blinking cursor
-- Serial console `ttyS0` still receives full output for debugging
-- Kernel ring buffer (`dmesg`) always retains complete log
+**Config merge**: defconfig → radxa.config → radxa_custom.config → loiterix_quiet.config
+
+**Vendor-specific caveat:** Allwinner DRM/fbcon takeover timing and early printk behavior may vary - hardware testing required to verify logo visibility and text suppression.
 
 ## Application Coordination
 
