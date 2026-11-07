@@ -1,25 +1,24 @@
 # Loiterix Boot Splash
 
-This document describes the boot splash implementation for Loiterix devices, which displays the authentic horizontal Loiterix logo during system boot with a quiet, professional user experience.
+This document describes the boot splash implementation for Loiterix devices, which displays the authentic horizontal Loiterix logo during system boot.
+
+**STATUS**: Kernel implementation complete. **UNTESTED on actual hardware**.  
+Requires hardware validation with display and serial console before production use.
 
 ## Overview
 
-The boot splash system consists of two coordinated components:
+The boot splash system provides:
 
-1. **Kernel-side**: Framebuffer console with embedded Loiterix logo
-2. **Userspace-side**: Quiet boot configuration and optional PSplash for extended splash
+1. **Kernel-side** (this repo): Framebuffer console with embedded Loiterix logo - **implemented, untested**
+2. **Userspace-side** (loiterix-platform repo): Quiet boot configuration - **separate implementation in progress**
 
-Together, these provide a seamless boot experience with the Loiterix branding while preserving diagnostic capabilities.
+## Kernel Implementation
 
-## Features
-
-- ✓ Authentic Loiterix horizontal logo (824×144, aspect ratio 103:18)
-- ✓ Displayed proportionally on black background during kernel boot
-- ✓ Quiet boot - kernel messages hidden from display
-- ✓ Serial console diagnostics preserved (ttyS0)
-- ✓ Boot logs accessible via journalctl
-- ✓ Debug/recovery mode accessible
-- ✓ Smooth transition to application
+Provides authentic Loiterix horizontal logo embedded in kernel image:
+- Logo: 824×144 original, scaled to 512x89, aspect ratio 103:18 maintained
+- Format: P3 ASCII PPM, CLUT224 (224-color palette)
+- Displays on black background after framebuffer initialization
+- Relies on Allwinner BSP framebuffer console (CONFIG_AW_FB_CONSOLE from bsp.config)
 
 ## Architecture
 
@@ -64,123 +63,70 @@ The logo is embedded directly in the kernel image and displayed automatically wh
 
 File: `src/arch/arm64/configs/radxa_splash.config`
 
-Key configuration options enabled:
+Configuration added:
 
 ```kconfig
-# Framebuffer and console
-CONFIG_FB=y
+# Framebuffer console (relies on CONFIG_AW_FB_CONSOLE from bsp.config)
 CONFIG_FRAMEBUFFER_CONSOLE=y
 CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
 
-# DRM/KMS for Allwinner display
-CONFIG_DRM=y
-CONFIG_DRM_FBDEV_EMULATION=y
-CONFIG_DRM_SUN4I=y
-CONFIG_DRM_SUN8I_MIXER=y
+# VT console
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
 
 # Kernel boot logo
 CONFIG_LOGO=y
 CONFIG_LOGO_LINUX_CLUT224=y
 ```
 
-This configuration is automatically included in the kernel build via `KERNEL_DEFCONFIG` in `Makefile.extra`.
+**Note**: A733 uses Allwinner BSP drivers (CONFIG_AW_DRM, CONFIG_AW_FB_CONSOLE) already enabled in `bsp.config`, not mainline sun4i drivers.
+
+Automatically included in kernel build via `KERNEL_DEFCONFIG` in `Makefile.extra`.
 
 ## Boot Parameters
 
 ### Required Parameters
 
-Add these parameters to your boot configuration (`/boot/extlinux/extlinux.conf` or device tree):
+Add to boot configuration (`/boot/extlinux/extlinux.conf` or bootloader config):
 
 ```
-console=tty1 console=ttyS0,115200n8 quiet loglevel=3 vt.global_cursor_default=0
+console=tty1 console=ttyS0,115200n8 quiet vt.global_cursor_default=0
 ```
 
 **Parameter explanation:**
 
 - `console=tty1` - Primary console on display (for logo)
-- `console=ttyS0,115200n8` - Serial console for diagnostics (always available)
+- `console=ttyS0,115200n8` - Serial console output
 - `quiet` - Suppress most kernel boot messages on display
-- `loglevel=3` - Show only errors and critical messages
 - `vt.global_cursor_default=0` - Hide cursor during boot
 
-### Debug/Recovery Mode
+**IMPORTANT - loglevel behavior:**
 
-To access verbose boot output for troubleshooting:
+`loglevel=N` applies **globally to ALL consoles**, not per-console. The kernel ring buffer always preserves all messages regardless of console loglevel (accessible via `dmesg` and `journalctl`).
 
-1. **Via U-Boot**: Interrupt U-Boot countdown (press any key)
-2. **Edit boot command**: Remove `quiet` parameter, or add `debug`
-3. **For systemd debug**: Add `systemd.log_level=debug`
+For full serial output during boot, loglevel must be high (7 or 8), which also shows on display unless `quiet` suppresses some categories. Trade-off between live serial verbosity and display quiet.
 
-Example debug boot parameters:
-```
-console=tty1 console=ttyS0,115200n8 loglevel=7 debug systemd.log_level=debug
-```
+**Recovery options:**
+- Full verbosity all consoles: `loglevel=7 debug` (removes quiet)
+- Display verbose + serial: Remove `quiet` parameter (keeps default loglevel)
+- Boot parameter editing: Via U-Boot interrupt or bootloader menu
 
 ## Userspace Configuration
 
-**Note**: The userspace configuration must be implemented in the `loiterix-platform` repository's Ansible playbooks.
+**Note**: Userspace implementation is separate, being handled in `loiterix-platform` repository by dedicated agent: https://cursor.com/agents/bc-3aaf84b5-4550-5f7f-8d59-c46925299652
 
-### Overview
+The userspace component should maintain quiet boot after kernel phase, preventing systemd/getty messages from overwriting display until application starts.
 
-The userspace component maintains a quiet boot experience after the kernel phase, ensuring no systemd or getty messages overwrite the display until the application is ready.
+### Requirements Overview
 
-### Components Required
+Userspace should provide:
 
-1. **Boot Parameter Configuration**
-   - Ansible task to configure kernel boot parameters in bootloader config
-   - File: typically `/boot/extlinux/extlinux.conf` or `/boot/armbianEnv.txt`
+1. **Boot Parameter Configuration**: Set kernel boot parameters in bootloader config
+2. **Systemd Quiet Mode**: Suppress status messages during init
+3. **Getty Suppression**: Prevent login prompt until application ready
+4. **Optional PSplash**: Extended splash during userspace init
 
-2. **Systemd Quiet Mode**
-   - Suppress systemd status messages: `ShowStatus=no`
-   - Reduce log verbosity: `LogLevel=warning`
-   - File: `/etc/systemd/system.conf`
-
-3. **Getty Suppression**
-   - Mask getty@tty1 until application starts
-   - Prevents login prompt from overwriting splash
-
-4. **Optional: PSplash**
-   - Extended splash screen during systemd initialization
-   - Maintains logo display until application takes over
-   - Package: `psplash` (lightweight, embedded-friendly)
-
-### Example Ansible Tasks
-
-Create `ansible/tasks/boot-splash.yml`:
-
-```yaml
----
-- name: Configure kernel boot parameters for quiet boot
-  lineinfile:
-    path: /boot/extlinux/extlinux.conf
-    regexp: '^(\s*append.*)'
-    line: '\1 quiet loglevel=3 vt.global_cursor_default=0'
-    backrefs: yes
-  notify: Reboot required
-
-- name: Suppress systemd messages on console
-  lineinfile:
-    path: /etc/systemd/system.conf
-    regexp: '^#?{{ item.key }}='
-    line: '{{ item.key }}={{ item.value }}'
-  loop:
-    - { key: 'LogLevel', value: 'warning' }
-    - { key: 'ShowStatus', value: 'no' }
-  notify: Reload systemd
-
-- name: Mask getty on tty1 until application starts
-  systemd:
-    name: getty@tty1
-    masked: yes
-```
-
-### Integration with Application
-
-The application service should:
-
-1. Start after systemd initialization
-2. Optionally dismiss PSplash (if used): `psplash-write "QUIT"`
-3. Take over the framebuffer or display
+Implementation details and safe Ansible code handled by separate platform agent.
 
 ## Building
 
@@ -470,3 +416,71 @@ sudo journalctl -b
 ---
 
 **Note**: This implementation is designed for Loiterix embedded devices running Allwinner A7/A733 SoCs. Adaptation may be required for other hardware platforms.
+
+## Testing Status
+
+### Completed
+- ✅ Patch format verified (P3 ASCII, <=224 colors)
+- ✅ Patch applies cleanly on clean checkout
+- ✅ Logo file format correct for pnmtologo
+- ✅ Config fragment syntax valid
+- ✅ Build system integration correct (Makefile.extra)
+
+### NOT Tested (Hardware Required)
+- ❌ Framebuffer initialization with AW_DRM/AW_FB_CONSOLE
+- ❌ Logo display on actual A733 device
+- ❌ Console output routing (tty1 vs ttyS0)
+- ❌ Boot parameter effect verification
+- ❌ Serial console behavior with loglevel
+- ❌ Display resolution and logo scaling
+- ❌ Recovery/debug mode functionality
+
+### Hardware Testing Required
+
+Before production use, validate on actual A733 hardware:
+
+1. **Display initialization**: Connect display, verify framebuffer active
+2. **Logo display**: Confirm logo appears after FB init, correct proportions
+3. **Console routing**: Verify tty1 shows logo, ttyS0 shows messages
+4. **Loglevel behavior**: Test different loglevel values, measure serial output
+5. **Recovery mode**: Test removing quiet parameter, verify full output
+6. **Boot timing**: Measure logo appearance timing vs kernel init
+7. **Error handling**: Test with no display, wrong resolution, etc.
+
+Connect serial console BEFORE testing to capture all output.
+
+## Build Testing (Cloud-Feasible)
+
+Test patch application and kernel config:
+
+```bash
+# Clean checkout test
+cd /workspace
+git clean -fdx
+git submodule update --init --recursive
+
+# Apply patches
+cd src
+for patch in ../debian/patches/linux/*.patch; do
+  git apply "$patch" || echo "Patch $patch failed"
+done
+
+# Verify files
+file drivers/video/logo/logo_linux_clut224.ppm
+# Should show: ASCII text
+
+ls arch/arm64/configs/radxa_splash.config
+# Should exist
+
+# Test kernel config merge (requires kernel build tools)
+make ARCH=arm64 defconfig radxa.config radxa_splash.config
+grep "CONFIG_LOGO=y" .config
+grep "CONFIG_FRAMEBUFFER_CONSOLE=y" .config
+```
+
+Build test (requires cross-compile toolchain):
+```bash
+make deb
+# Verify linux-image-*-aw2511_*.deb created
+```
+
