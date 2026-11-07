@@ -18,10 +18,32 @@ Displays Loiterix horizontal logo on HDMI during kernel boot. Logo clears when l
 
 ## Boot Parameters
 
-Boot parameters configured via loiterix-platform (not kernel):
+Quiet boot parameters must be configured via bootloader/userspace (not kernel config).
+
+### Kernel CMDLINE Limitation
+
+ARM64 kernel `CONFIG_CMDLINE` options in this tree:
+- `CONFIG_CMDLINE_FROM_BOOTLOADER` (default) - uses bootloader args OR falls back to CMDLINE if bootloader empty
+- `CONFIG_CMDLINE_FORCE` - always uses CMDLINE, ignores bootloader (unsafe - breaks root= etc)
+
+**No `CONFIG_CMDLINE_EXTEND` available** - cannot safely append kernel defaults to bootloader args.
+
+Setting kernel CMDLINE would either:
+1. Only apply when bootloader provides NO args (unlikely)
+2. Override critical bootloader settings (root device, console config)
+
+### Platform Configuration
+
+Boot parameters configured via loiterix-platform bootloader config:
 ```
-console=tty1 console=ttyS0,115200n8 quiet vt.global_cursor_default=0
+console=tty1 console=ttyS0,115200n8 quiet loglevel=3 vt.global_cursor_default=0
 ```
+
+- `quiet` - suppresses most kernel messages on consoles (not serial)
+- `loglevel=3` - limits console output to errors/warnings
+- `vt.global_cursor_default=0` - hides blinking cursor
+- Serial console `ttyS0` still receives full output for debugging
+- Kernel ring buffer (`dmesg`) always retains complete log
 
 ## Application Coordination
 
