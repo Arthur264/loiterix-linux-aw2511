@@ -22,7 +22,7 @@ src/arch/arm64/configs/bsp.config: $(SRC-KERNEL)
 	ln -sf ../../../../device-a733/configs/default/linux-6.6/bsp_defconfig $@
 
 src/arch/arm64/configs/loiterix_quiet.config: $(SRC-KERNEL)
-	ln -sf ../../../.github/local/configs/loiterix_quiet.config $@
+	ln -sf ../../../../.github/local/configs/loiterix_quiet.config $@
 
 bsp/include/sunxi-autogen.h: $(SRC-KERNEL)
 	echo "#define AW_BSP_VERSION \"$(shell git log -n 1 --abbrev=10 --pretty=format:"%h"), $(shell date "+%Y-%m-%d %H:%M:%S"), RadxaOS SDK\"" > $@
