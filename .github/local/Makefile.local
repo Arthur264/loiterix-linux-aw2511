@@ -1,9 +1,10 @@
 CUSTOM_ENV_DEFINITIONS := CFLAGS=-Wno-enum-int-mismatch
 CUSTOM_MAKE_DEFINITIONS := BSP_TOP=bsp/ LICHEE_KERN_DIR=./ KBUILD_DEFCONFIG=bsp.config
-KERNEL_DEFCONFIG := defconfig radxa.config radxa_custom.config
+KERNEL_DEFCONFIG := defconfig radxa.config radxa_custom.config loiterix_quiet.config
 SUPPORT_CLEAN := false
 ALLWINNER_FIXUP := src/bsp \
 	src/arch/arm64/configs/bsp.config \
+	src/arch/arm64/configs/loiterix_quiet.config \
 	src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7a.dts \
 	src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7s.dts \
 	src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7z.dts \
@@ -19,6 +20,9 @@ src/bsp: $(SRC-KERNEL)
 
 src/arch/arm64/configs/bsp.config: $(SRC-KERNEL)
 	ln -sf ../../../../device-a733/configs/default/linux-6.6/bsp_defconfig $@
+
+src/arch/arm64/configs/loiterix_quiet.config: $(SRC-KERNEL)
+	ln -sf ../../../.github/local/configs/loiterix_quiet.config $@
 
 bsp/include/sunxi-autogen.h: $(SRC-KERNEL)
 	echo "#define AW_BSP_VERSION \"$(shell git log -n 1 --abbrev=10 --pretty=format:"%h"), $(shell date "+%Y-%m-%d %H:%M:%S"), RadxaOS SDK\"" > $@
