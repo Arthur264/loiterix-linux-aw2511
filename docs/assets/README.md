@@ -30,17 +30,21 @@ Used as the Linux kernel boot logo, embedded in kernel image.
 - `logo_loiterix_clut224.ppm` - Kernel logo in PPM format (512×89, 224-color palette)
 - `logo_loiterix_clut224.png` - PNG preview of kernel logo (512×89)
 
-**Conversion**:
+**Conversion** (CRITICAL - must be P3 ASCII for kernel's pnmtologo):
 ```bash
+# IMPORTANT: Use -compress none for P3 ASCII format (not P6 binary)
 convert loiterix-horizontal-on-dark-black_42a3.png \
   -resize 512x89! \
-  -background black -gravity center \
-  -colors 224 -depth 8 -type Palette \
-  logo_loiterix_clut224.png
+  -colors 224 -depth 8 \
+  -compress none \
+  logo_loiterix_clut224.ppm
 
-convert logo_loiterix_clut224.png logo_loiterix_clut224.ppm
+# Verify format
+file logo_loiterix_clut224.ppm
+# Must show: "ASCII text" not "binary"
 ```
 
+**Result**: P3 ASCII PPM (~327KB), required by kernel's pnmtologo tool.  
 **Installed to**: `src/drivers/video/logo/logo_linux_clut224.ppm` (replaces default Linux logo)
 
 ### PSplash Assets (Optional)
@@ -179,12 +183,13 @@ ansible-playbook -i inventory site.yml --tags boot-splash
 
 - **CLUT**: Color Look-Up Table (indexed color)
 - **224 colors**: Kernel logo system uses fixed 224-color palette
-- **Format**: PPM (Portable Pixmap) - simple raster format
+- **Format**: PPM P3 (Portable Pixmap) - ASCII text format, NOT P6 binary
+- **File size**: ~327KB for 512×89 (ASCII is larger than binary but required)
+- **Critical**: kernel's pnmtologo tool requires P3 ASCII format
 - **Advantages**: 
-  - Small file size
-  - Fast display (no decompression)
+  - Simple text format (P3)
   - Platform-independent
-  - Embedded in kernel binary
+  - Embedded in kernel binary (converted to C array during build)
 
 ### Why Replace logo_linux_clut224.ppm?
 
