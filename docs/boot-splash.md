@@ -27,11 +27,10 @@ Integrated via `Makefile.local` config merge.
 
 ### Quiet Boot - Kernel Native Defaults
 
-**No bootloader/Ansible configuration required.** Quiet boot via kernel defaults only:
-
 1. **Loglevel Default** (config): `CONFIG_CONSOLE_LOGLEVEL_DEFAULT=3`
-   - Shows KERN_ERR and above (errors/warnings, suppresses info/debug/notices)
-   - Bootloader can override with `loglevel=X`, `debug`, or `ignore_loglevel`
+   - Console prints messages with priority **< 3**: EMERG(0), ALERT(1), CRIT(2) only
+   - Does NOT print KERN_ERR(3), KERN_WARNING(4), or lower-priority messages
+   - Bootloader can override with explicit `loglevel=X`, `debug`, or `ignore_loglevel`
    - Applies globally to ALL consoles including serial (`ttyS0`)
    - Ring buffer (`dmesg`/`journalctl -b`) preserves complete log regardless
 
@@ -40,12 +39,15 @@ Integrated via `Makefile.local` config merge.
    - Bootloader can override with `vt.global_cursor_default=1` for debug
 
 3. **Logo Display**: Shows during framebuffer init before console takeover
-   - With loglevel=3, minimal/no text overlay (errors only if any occur)
    - Application clears framebuffer when ready
 
 **Config merge**: defconfig → radxa.config → radxa_custom.config → loiterix_quiet.config
 
-**Vendor-specific caveat:** Allwinner DRM/fbcon takeover timing and early printk behavior may vary - hardware testing required to verify logo visibility and text suppression.
+**Limitations:**
+- Loglevel=3 prints only critical system failures (EMERG/ALERT/CRIT)
+- Vendor-specific console/fbcon initialization order unknown - hardware testing required
+- Userspace systemd/Plymouth configuration may still be needed for complete quiet boot
+- No guarantee of text-free logo display without hardware verification
 
 ## Application Coordination
 
