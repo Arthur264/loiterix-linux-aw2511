@@ -9,7 +9,7 @@ Figma Logo Kit: https://www.figma.com/design/vsVP8uRloZi2OKnKur7A1B/Loiterix-Log
 
 ## Kernel Logo Conversion
 
-Final logo embedded in `debian/patches/linux/0005-feat-loiterix-boot-splash.patch` as `drivers/video/logo/logo_linux_clut224.ppm` (512×89 P3 ASCII, ≤224 colors).
+Final logo embedded in `debian/patches/linux/0005-feat-loiterix-boot-splash.patch` as `src/drivers/video/logo/logo_linux_clut224.ppm` (512×89 P3 ASCII, ≤224 colors).
 
 To regenerate:
 

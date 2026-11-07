@@ -4,19 +4,18 @@ Displays Loiterix horizontal logo on HDMI during kernel boot with quiet defaults
 
 ## Changes
 
-### Patch: Logo + Cursor Default
+### Patch: Logo + Cursor + Quiet Config
 `debian/patches/linux/0005-feat-loiterix-boot-splash.patch` modifies:
-- `drivers/video/logo/logo_linux_clut224.ppm` - Loiterix logo (512×89 P3 ASCII, ≤224 colors)
-- `drivers/tty/vt/vt.c` - Change `global_cursor_default` from `-1` to `0` (cursor off)
+- `src/drivers/video/logo/logo_linux_clut224.ppm` - Loiterix logo (512×89 P3 ASCII, ≤224 colors)
+- `src/drivers/tty/vt/vt.c` - Change `global_cursor_default` from `-1` to `0` (cursor off)
+- `src/arch/arm64/configs/loiterix_quiet.config` - Quiet loglevel defaults
+  (source kept in `.github/local/configs/loiterix_quiet.config`)
+  - `CONFIG_CONSOLE_LOGLEVEL_DEFAULT=3`
+  - `CONFIG_CONSOLE_LOGLEVEL_QUIET=3`
 
 Source: Figma Logo Kit node 1:6 (824×144, aspect 103:18)
 
-### Config: Quiet Boot Default
-`.github/local/configs/loiterix_quiet.config`:
-- `CONFIG_CONSOLE_LOGLEVEL_DEFAULT=3` - Show errors/warnings only (KERN_ERR+)
-- `CONFIG_CONSOLE_LOGLEVEL_QUIET=3` - Same level when bootloader passes "quiet"
-
-Integrated via `Makefile.local` config merge.
+Merged via `KERNEL_DEFCONFIG` in `Makefile.local`.
 
 ### Existing Config (No Changes)
 - CONFIG_LOGO=y (defconfig)

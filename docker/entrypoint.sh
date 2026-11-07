@@ -30,12 +30,13 @@ git -C "$KERNEL" ls-files | awk '{
 	git -C "$KERNEL" checkout-index -f -- "$path"
 done
 
-# --- debian patches (radxa*.config) -------------------------------------
+# --- debian patches (radxa*.config, loiterix_quiet.config, splash) ------
 cd "$ROOT"
 rm -rf .pc
 dpkg-source --before-build .
 test -f "$KERNEL/arch/arm64/configs/radxa.config"
 test -f "$KERNEL/arch/arm64/configs/radxa_custom.config"
+test -f "$KERNEL/arch/arm64/configs/loiterix_quiet.config"
 
 # --- build --------------------------------------------------------------
 rm -f /build/linux-*.deb /build/linux-*.changes /build/linux-*.buildinfo \
