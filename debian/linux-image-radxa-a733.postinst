@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+configure)
+	if command -v u-boot-update >/dev/null 2>&1; then
+		u-boot-update || true
+	fi
+	;;
+esac
+
+#DEBHELPER#
+
+exit 0
