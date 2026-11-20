@@ -1,3 +1,15 @@
+linux-aw2511 (6.6.98-26) unstable; urgency=medium
+
+  [ Cursor Agent ]
+  * Merge radxa-pkg/linux-aw2511 (upstream 6.6.98-5..7 packaging):
+    CPU idle no longer forced off in radxa_custom.config; radxa.config
+    enables CONFIG_CPU_IDLE; rsdk workflow/Makefile/devenv/dh_dkms updates
+  * feat: loiterix_power.config — PSCI cpuidle (TEO) and DSU frequency scaling
+  * chore: pin loiterix submodules to latest current-branch commits
+  * fix: cubie-a7z: disable unused eDP/TV-out (device-a733)
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Fri, 20 Nov 2026 12:00:00 +0000
+
 linux-aw2511 (6.6.98-25) unstable; urgency=medium
 
   [ Arthur Feduniv ]
