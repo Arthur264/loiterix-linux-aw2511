@@ -1,3 +1,23 @@
+linux-aw2511 (6.6.98-28) unstable; urgency=medium
+
+  [ Cursor Agent ]
+  * feat: trim debug/tracing and unused fs/net/DRM for size
+  * feat: WQ_POWER_EFFICIENT_DEFAULT for idle workqueues
+  * chore: cubie-a7z DT idle peripherals (device-a733 submodule)
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Fri, 20 Nov 2026 20:00:00 +0000
+
+linux-aw2511 (6.6.98-27) unstable; urgency=medium
+
+  [ Cursor Agent ]
+  * feat: loiterix_trim.config drops unused Radxa sync options
+    (RAID456, idle inject, DVB USB, extra cameras) and audit-safe
+    drivers (CTP/touch, AC101, eDP/DSI/LVDS DRM, USB ADB/RNDIS, extra BT)
+  * feat: re-enable in-tree AIC8800 WiFi
+    (radxa.config sets CONFIG_AIC_WLAN_SUPPORT=n for DKMS)
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Fri, 20 Nov 2026 17:00:00 +0000
+
 linux-aw2511 (6.6.98-26) unstable; urgency=medium
 
   [ Cursor Agent ]
