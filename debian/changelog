@@ -1,3 +1,12 @@
+linux-aw2511 (6.6.98-30) unstable; urgency=medium
+
+  [ Cursor Agent ]
+  * fix: cubie-a7z: re-enable vo1/tv0 for HDMI (device-a733)
+    HDMI OF-graph is hdmi0 <-> tv0/tcon3 with top=&vo1; disabling
+    them as "unused TV-out" broke sunxi-drm HDMI bind.
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Tue, 24 Nov 2026 08:00:00 +0000
+
 linux-aw2511 (6.6.98-29) unstable; urgency=medium
 
   [ Cursor Agent ]
