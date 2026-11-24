@@ -4,6 +4,8 @@ linux-aw2511 (6.6.98-30) unstable; urgency=medium
   * refactor: merge loiterix_{quiet,power,trim}.config into loiterix.config
   * refactor: move Cubie A7Z Loiterix DT overrides into loiterix.dtsi;
     keep device-a733 board.dts as stock Radxa (fixes HDMI vo1/tv0 path)
+  * feat: sysfs PWM on pwmchip0 channel 0 (pin 24 / PD10 via pwm1_0);
+    enable CONFIG_PWM / CONFIG_PWM_SYSFS / CONFIG_AW_PWM
 
  -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Tue, 24 Nov 2026 20:00:00 +0000
 
