@@ -45,12 +45,12 @@ src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7a.dts: $(SRC-KERNEL)
 src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7s.dts: $(SRC-KERNEL)
 	ln -sf ../../../../../../device-a733/configs/cubie_a7s/linux-6.6/board.dts $@
 
-# Copy + patch: pwm1_0 on PD10 (pin 24); disable pwm0 so pwm1 is pwmchip0.
-# radxa-overlays has no sun60iw2p1-pwm1-0.dtbo (pwm1-1 is pin 23 / ch 1).
-src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7z.dts: $(SRC-KERNEL) .github/local/patches/cubie-a7z-sysfs-pwm.dts.patch
+# Device DTS extension: append PWM pinmux onto device-a733 cubie_a7z
+# board.dts. Same nodes as loiterix-allwinner-device branch
+# cursor/cubie-a7z-sysfs-pwm-ac3c.
+src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7z.dts: $(SRC-KERNEL) .github/local/device/cubie_a7z/linux-6.6/pwm.dtsi
 	cp -a device-a733/configs/cubie_a7z/linux-6.6/board.dts $@
-	patch -N --no-backup-if-mismatch -p1 -d src/arch/arm64/boot/dts/allwinner \
-		< .github/local/patches/cubie-a7z-sysfs-pwm.dts.patch
+	cat .github/local/device/cubie_a7z/linux-6.6/pwm.dtsi >> $@
 
 src/arch/arm64/boot/dts/allwinner/sun60i-a733-cm-a7-rpi-cm5-io.dts: $(SRC-KERNEL)
 	ln -sf ../../../../../../device-a733/configs/cm_a7_rpi_cm5_io/linux-6.6/board.dts $@

@@ -4,8 +4,7 @@ linux-aw2511 (6.6.98-30) unstable; urgency=medium
   * feat: sysfs PWM for Cubie A7Z popcorn payload
     (loiterix_pwm.config: CONFIG_PWM, CONFIG_PWM_SYSFS, CONFIG_AW_PWM)
   * chore: cubie-a7z pwmchip0 channel 0 on pin 24
-    (local DTS patch)
-  * chore: device-a733 HDMI vo1/tv0 (98cc2eb)
+    (device DTS extension)
 
  -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Tue, 24 Nov 2026 12:00:00 +0000
 
