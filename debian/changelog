@@ -1,10 +1,10 @@
 linux-aw2511 (6.6.98-30) unstable; urgency=medium
 
   [ Cursor Agent ]
-  * feat: sysfs PWM for Cubie A7Z popcorn payload
-    (loiterix_pwm.config: CONFIG_PWM, CONFIG_PWM_SYSFS, CONFIG_AW_PWM)
+  * feat: Cubie A7Z Loiterix device extension (sysfs PWM)
+    (device/cubie_a7z/linux-6.6/loiterix.config)
   * chore: cubie-a7z pwmchip0 channel 0 on pin 24
-    (device DTS extension)
+    (device/cubie_a7z/linux-6.6/loiterix.dtsi)
 
  -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Tue, 24 Nov 2026 12:00:00 +0000
 

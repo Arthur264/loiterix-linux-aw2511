@@ -1,13 +1,13 @@
 CUSTOM_ENV_DEFINITIONS := CFLAGS=-Wno-enum-int-mismatch
 CUSTOM_MAKE_DEFINITIONS := BSP_TOP=bsp/ LICHEE_KERN_DIR=./ KBUILD_DEFCONFIG=bsp.config
-KERNEL_DEFCONFIG := defconfig radxa.config radxa_custom.config loiterix_quiet.config loiterix_power.config loiterix_trim.config loiterix_pwm.config
+KERNEL_DEFCONFIG := defconfig radxa.config radxa_custom.config loiterix_quiet.config loiterix_power.config loiterix_trim.config loiterix.config
 SUPPORT_CLEAN := false
 ALLWINNER_FIXUP := src/bsp \
 	src/arch/arm64/configs/bsp.config \
 	src/arch/arm64/configs/loiterix_quiet.config \
 	src/arch/arm64/configs/loiterix_power.config \
 	src/arch/arm64/configs/loiterix_trim.config \
-	src/arch/arm64/configs/loiterix_pwm.config \
+	src/arch/arm64/configs/loiterix.config \
 	src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7a.dts \
 	src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7s.dts \
 	src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7z.dts \
@@ -33,8 +33,8 @@ src/arch/arm64/configs/loiterix_power.config: $(SRC-KERNEL)
 src/arch/arm64/configs/loiterix_trim.config: $(SRC-KERNEL)
 	ln -sf ../../../../.github/local/configs/loiterix_trim.config $@
 
-src/arch/arm64/configs/loiterix_pwm.config: $(SRC-KERNEL)
-	ln -sf ../../../../.github/local/configs/loiterix_pwm.config $@
+src/arch/arm64/configs/loiterix.config: $(SRC-KERNEL)
+	ln -sf ../../../../.github/local/device/cubie_a7z/linux-6.6/loiterix.config $@
 
 bsp/include/sunxi-autogen.h: $(SRC-KERNEL)
 	echo "#define AW_BSP_VERSION \"$(shell git log -n 1 --abbrev=10 --pretty=format:"%h"), $(shell date "+%Y-%m-%d %H:%M:%S"), RadxaOS SDK\"" > $@
@@ -45,12 +45,9 @@ src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7a.dts: $(SRC-KERNEL)
 src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7s.dts: $(SRC-KERNEL)
 	ln -sf ../../../../../../device-a733/configs/cubie_a7s/linux-6.6/board.dts $@
 
-# Device DTS extension: append PWM pinmux onto device-a733 cubie_a7z
-# board.dts. Same nodes as loiterix-allwinner-device branch
-# cursor/cubie-a7z-sysfs-pwm-ac3c.
-src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7z.dts: $(SRC-KERNEL) .github/local/device/cubie_a7z/linux-6.6/pwm.dtsi
+src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7z.dts: $(SRC-KERNEL) .github/local/device/cubie_a7z/linux-6.6/loiterix.dtsi
 	cp -a device-a733/configs/cubie_a7z/linux-6.6/board.dts $@
-	cat .github/local/device/cubie_a7z/linux-6.6/pwm.dtsi >> $@
+	cat .github/local/device/cubie_a7z/linux-6.6/loiterix.dtsi >> $@
 
 src/arch/arm64/boot/dts/allwinner/sun60i-a733-cm-a7-rpi-cm5-io.dts: $(SRC-KERNEL)
 	ln -sf ../../../../../../device-a733/configs/cm_a7_rpi_cm5_io/linux-6.6/board.dts $@

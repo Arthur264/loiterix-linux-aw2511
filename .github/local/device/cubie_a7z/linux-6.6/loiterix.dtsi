@@ -1,7 +1,6 @@
 /*
- * Cubie A7Z device DTS extension: sysfs PWM for popcorn.
- * Concatenated onto device-a733 cubie_a7z board.dts at pre_build.
- * pwmchip0 channel 0 = PD10 = 40-pin pin 24. UART2/UART3/I2S0 unused.
+ * Cubie A7Z device DTS extension (appended to board.dts at pre_build).
+ * pwmchip0 channel 0 = PD10 = 40-pin pin 24.
  */
 
 &pio {
@@ -18,11 +17,6 @@
 	};
 };
 
-/*
- * pwm0 would otherwise be pwmchip0. Its channel 0 is PB4 (I2S0 MCLK, pin 36)
- * and vendor pwm0_4 is PD22, which is also PCIe reset. Disable the whole
- * controller so pwm1 probes first as /sys/class/pwm/pwmchip0.
- */
 &pwm0 {
 	status = "disabled";
 };
