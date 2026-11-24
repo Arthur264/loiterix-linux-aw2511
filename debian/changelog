@@ -1,3 +1,12 @@
+linux-aw2511 (6.6.98-30) unstable; urgency=medium
+
+  [ Cursor Agent ]
+  * refactor: merge loiterix_{quiet,power,trim}.config into loiterix.config
+  * refactor: move Cubie A7Z Loiterix DT overrides into loiterix.dtsi;
+    keep device-a733 board.dts as stock Radxa (fixes HDMI vo1/tv0 path)
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Tue, 24 Nov 2026 20:00:00 +0000
+
 linux-aw2511 (6.6.98-29) unstable; urgency=medium
 
   [ Cursor Agent ]

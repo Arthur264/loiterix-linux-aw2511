@@ -1,0 +1,390 @@
+// SPDX-License-Identifier: (GPL-2.0+ or MIT)
+/*
+ * Loiterix Cubie A7Z DT overrides.
+ * Included at the end of the stock Radxa board.dts (see Makefile.local).
+ * Keep device-a733 board.dts aligned with radxa/allwinner-device.
+ */
+
+/ {
+	aliases {
+		/* CSI connector I2C; sensor0_twi_cci_id = 3 */
+		i2c3 = &i2c_gpio_cam;
+	};
+
+	/*
+	 * CSI connector I2C (PE3 SCL / PE4 SDA). Hardware TWI3 times out
+	 * with the IMX415 module, so bit-bang instead.
+	 */
+	i2c_gpio_cam: i2c-gpio-cam {
+		compatible = "i2c-gpio";
+		sda-gpios = <&pio PE 4 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+		scl-gpios = <&pio PE 3 (GPIO_ACTIVE_HIGH | GPIO_OPEN_DRAIN)>;
+		i2c-gpio,delay-us = <5>; /* ~100 kHz */
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "okay";
+	};
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		ramoops@43f00000 {
+			compatible = "ramoops";
+			reg = <0x0 0x43f00000 0x0 0x00100000>;
+			record-size = <0x20000>;
+			console-size = <0x20000>;
+			pmsg-size = <0x20000>;
+		};
+	};
+
+	leds {
+		led-0 {
+			default-state = "off";
+			/delete-property/ linux,default-trigger;
+		};
+	};
+};
+
+/* UART3 on PJ22/PJ23 (header pins 5/3); conflicts with twi7 on same pins. */
+&uart3_pins_active {
+	pins = "PJ22", "PJ23";
+};
+
+&uart3_pins_sleep {
+	pins = "PJ22", "PJ23";
+};
+
+&pio {
+	twi3_pins_default: twi3@0 {
+		pins = "PE3", "PE4";
+		function = "twi3";
+		drive-strength = <10>;
+		bias-pull-up;
+	};
+
+	twi3_pins_sleep: twi3@1 {
+		pins = "PE3", "PE4";
+		function = "gpio_in";
+	};
+
+	twi4_pins_default: twi4@0 {
+		pins = "PE10", "PE11";
+		function = "twi4";
+		drive-strength = <10>;
+		bias-pull-up;
+	};
+
+	twi4_pins_sleep: twi4@1 {
+		pins = "PE10", "PE11";
+		function = "gpio_in";
+	};
+};
+
+/* Sleep / unused: BCLK+LRCK+DIN only (no MCLK/DOUT for MEMS mic) */
+&i2s0_pins_f {
+	pins = "PB5", "PB6", "PB8";
+};
+
+&soc {
+	auto_print@54321 {
+		status = "disabled";
+	};
+};
+
+/* PG6–PG9: typical BT UART; ansible masks bluetooth.service */
+&uart1 {
+	status = "disabled";
+};
+
+&uart2 {
+	clocks = <&ccu CLK_UART2>, <&ccu CLK_APB_UART>, <&ccu CLK_PLL_PERI0_600M>;
+	clock-frequency = <40000000>;
+	status = "okay";
+};
+
+&uart3 {
+	status = "okay";
+};
+
+&pwm1_9 {
+	status = "disabled";
+};
+
+&fan0 {
+	status = "disabled";
+};
+
+&usbc2 {
+	drvvbus-supply = <&reg_usb2_vbus>;
+	status = "okay";
+};
+
+/* Force USB-C host for soldered USB camera; drop Type-C role switch graph */
+&xhci2 {
+	dr_mode = "host";
+	/delete-property/ role-switch-default-mode;
+	/delete-property/ usb-role-switch;
+	/delete-node/ port;
+};
+
+&et7304 {
+	/delete-node/ ports;
+};
+
+&g2d {
+	status = "okay";
+};
+
+/*
+ * HDMI path on A733: hdmi0 <-> tv0 (tcon3), top = &vo1 (TCON-TOP1).
+ * Keep vo1/tv0 okay; disable unused eDP (tv1/edp0).
+ */
+&vo1 {
+	status = "okay";
+};
+
+&tv0 {
+	status = "okay";
+};
+
+&tv1 {
+	status = "disabled";
+};
+
+&edp0 {
+	status = "disabled";
+};
+
+&gmac0 {
+	status = "disabled";
+};
+
+&gmac1 {
+	status = "disabled";
+};
+
+/*
+ * I2S0 capture for ICS-43434 / INMP441 on 40-pin header (NOT I2C):
+ * Pin1 3V3, Pin9/GND, Pin12 BCLK(PB5), Pin35 LRCK(PB6), Pin38 DIN(PB8).
+ * Empty codec → sunxi falls back to snd-soc-dummy.
+ */
+&i2s0_plat {
+	tdm-num		= <0>;
+	rx-pin		= <0>;
+	pinctrl-used;
+	pinctrl-names	= "default", "sleep";
+	pinctrl-0	= <&i2s0_pins_b &i2s0_pins_c &i2s0_pins_d>;
+	pinctrl-1	= <&i2s0_pins_f>;
+	rx-sync-en;
+	status		= "okay";
+};
+
+&i2s0_mach {
+	soundcard-mach,format		= "i2s";
+	soundcard-mach,frame-master	= <&i2s0_cpu>;
+	soundcard-mach,bitclock-master	= <&i2s0_cpu>;
+	soundcard-mach,name		= "ics43434-mic";
+	soundcard-mach,slot-num		= <2>;
+	soundcard-mach,slot-width	= <32>;
+	soundcard-mach,capture-only;
+	status				= "okay";
+
+	i2s0_cpu: soundcard-mach,cpu {
+		sound-dai = <&i2s0_plat>;
+		soundcard-mach,pll-fs	= <1>;
+		soundcard-mach,mclk-fs	= <0>;
+	};
+
+	/* Intentionally empty: no sound-dai phandle → snd-soc-dummy */
+	i2s0_codec: soundcard-mach,codec {
+	};
+};
+
+&lradc {
+	status = "disabled";
+};
+
+&gpadc0 {
+	status = "disabled";
+};
+
+&s_irrx {
+	status = "disabled";
+};
+
+/* Waveshare IMX415-98 on CAM2 via Radxa AC020 (31P→22P) */
+&vind0 {
+	csi_top = <704000000>;
+	csi_isp = <704000000>;
+	vind_mclkpin-supply = <&reg_bldo1>;
+	vind_mclkpin_vol = <1800000>;
+	vind_mcsipin-supply = <&reg_bldo1>;
+	vind_mcsipin_vol = <1800000>;
+	vind_mipipin-supply = <&reg_bldo1>;
+	vind_mipipin_vol = <1800000>;
+	status = "okay";
+};
+
+&csi1 {
+	status = "okay";
+	pinctrl-0 = <>;
+	pinctrl-1 = <>;
+};
+
+&mipi1 {
+	status = "okay";
+	pinctrl-0 = <>;
+	pinctrl-1 = <>;
+};
+
+&tdm0 {
+	work_mode = <1>;
+	status = "okay";
+};
+
+&isp00 {
+	work_mode = <1>;
+	status = "okay";
+};
+
+&isp01 {
+	status = "okay";
+};
+
+&scaler00 {
+	work_mode = <1>;
+	status = "okay";
+};
+
+&scaler01 {
+	status = "okay";
+};
+
+&scaler10 {
+	work_mode = <1>;
+	status = "okay";
+};
+
+&scaler11 {
+	status = "okay";
+};
+
+&scaler20 {
+	work_mode = <1>;
+	status = "okay";
+};
+
+&scaler30 {
+	work_mode = <1>;
+	status = "okay";
+};
+
+&sensor0 {
+	/* Waveshare IMX415-98 IR-CUT: 7-bit 0x37 (not Radxa Camera 4K 0x1a) */
+	device_type = "sensor0";
+	sensor0_mname = "imx415_mipi";
+	sensor0_twi_addr = <0x6e>; /* 8-bit write addr; 7-bit 0x37 */
+	sensor0_twi_cci_id = <3>; /* alias i2c3 → i2c_gpio_cam */
+	sensor0_mclk_id = <1>;
+	sensor0_pos = "front";
+	sensor0_isp_used = <1>;
+	sensor0_fmt = <1>;
+	sensor0_stby_mode = <0>;
+	sensor0_vflip = <0x01>;
+	sensor0_hflip = <0>;
+	sensor0_cameravdd-supply = <&reg_dldo3>;
+	sensor0_cameravdd_vol = <3300000>;
+	sensor0_iovdd-supply = <&reg_bldo1>;
+	sensor0_iovdd_vol = <1800000>;
+	sensor0_avdd-supply = <&reg_aldo2>;
+	sensor0_avdd_vol = <2800000>;
+	sensor0_dvdd-supply = <&reg_eldo4>;
+	sensor0_dvdd_vol = <1200000>;
+	sensor0_reset = <&pio PE 9 GPIO_ACTIVE_LOW>;
+	sensor0_pwdn = <&pio PE 8 GPIO_ACTIVE_HIGH>;
+	status = "okay";
+};
+
+&vinc00 {
+	vinc0_csi_sel = <1>;
+	vinc0_mipi_sel = <1>;
+	vinc0_isp_sel = <0>;
+	vinc0_isp_tx_ch = <0>;
+	vinc0_tdm_rx_sel = <0>;
+	vinc0_rear_sensor_sel = <0>;
+	vinc0_front_sensor_sel = <0>;
+	vinc0_sensor_list = <0>;
+	device_id = <0>;
+	work_mode = <0x1>;
+	status = "okay";
+};
+
+&vinc01 {
+	vinc1_csi_sel = <1>;
+	vinc1_mipi_sel = <1>;
+	vinc1_isp_sel = <1>;
+	vinc1_isp_tx_ch = <0>;
+	vinc1_tdm_rx_sel = <1>;
+	vinc1_rear_sensor_sel = <0>;
+	vinc1_front_sensor_sel = <0>;
+	vinc1_sensor_list = <0>;
+	device_id = <1>;
+	status = "okay";
+};
+
+&vinc10 {
+	vinc4_csi_sel = <1>;
+	vinc4_mipi_sel = <1>;
+	vinc4_isp_sel = <0>;
+	vinc4_isp_tx_ch = <0>;
+	vinc4_tdm_rx_sel = <0>;
+	vinc4_rear_sensor_sel = <0>;
+	vinc4_front_sensor_sel = <0>;
+	vinc4_sensor_list = <0>;
+	device_id = <4>;
+	work_mode = <1>;
+	status = "okay";
+};
+
+&vinc11 {
+	vinc5_csi_sel = <1>;
+	vinc5_mipi_sel = <1>;
+	vinc5_isp_sel = <1>;
+	vinc5_isp_tx_ch = <0>;
+	vinc5_tdm_rx_sel = <1>;
+	vinc5_rear_sensor_sel = <0>;
+	vinc5_front_sensor_sel = <0>;
+	vinc5_sensor_list = <0>;
+	device_id = <5>;
+	status = "okay";
+};
+
+&twi3 {
+	clock-frequency = <400000>;
+	pinctrl-0 = <&twi3_pins_default>;
+	pinctrl-1 = <&twi3_pins_sleep>;
+	pinctrl-names = "default", "sleep";
+	twi_drv_used = <1>;
+	no_suspend = <1>;
+	twi-supply = <&reg_bldo1>;
+	status = "disabled"; /* PE3/PE4 used by i2c_gpio_cam */
+};
+
+&twi4 {
+	status = "disabled";
+};
+
+/*
+ * Header I2C would be PJ22/PJ23 → /dev/i2c-7, but those pins are owned by uart3.
+ */
+&twi7 {
+	clock-frequency = <400000>;
+	pinctrl-0 = <&twi7_pins_default>;
+	pinctrl-1 = <&twi7_pins_sleep>;
+	pinctrl-names = "default", "sleep";
+	twi_drv_used = <1>;
+	no_suspend = <1>;
+	status = "disabled";
+};
