@@ -1,0 +1,56 @@
+diff --git a/sun60i-a733-cubie-a7z.dts b/sun60i-a733-cubie-a7z.dts
+index 85f0002..bb8bf23 100644
+--- a/sun60i-a733-cubie-a7z.dts
++++ b/sun60i-a733-cubie-a7z.dts
+@@ -346,6 +346,24 @@
+ 		bias-pull-down;
+ 	};
+ 
++	/*
++	 * Header PWM for userspace sysfs (/sys/class/pwm/pwmchip0, channel 0).
++	 * PD10 is 40-pin pin 24 (SPI1 CS0 / PWM1-0). UART2/UART3/I2S0 are
++	 * elsewhere (PB0/PB1, PJ22/PJ23, PB4-PB8). Radxa overlay
++	 * sun60iw2p1-pwm1-1.dtbo is the same controller, channel 1, pin 23.
++	 */
++	pwm1_0_pins_active: pwm1-0-pins-active {
++		pins = "PD10";
++		function = "pwm1_0";
++		drive-strength = <10>;
++	};
++
++	pwm1_0_pins_sleep: pwm1-0-pins-sleep {
++		pins = "PD10";
++		function = "gpio_in";
++		bias-pull-down;
++	};
++
+ 	pwm1_8_pins_active: pwm1@0 {
+ 		pins = "PJ26";
+ 		function = "pwm1_8";
+@@ -857,10 +875,26 @@
+ 	status = "disabled";
+ };
+ 
++/*
++ * pwm0 would otherwise be pwmchip0. Its channel 0 is PB4 (I2S0 MCLK, pin 36)
++ * and vendor pwm0_4 is PD22, which is also PCIe reset. Disable the whole
++ * controller so pwm1 probes first as /sys/class/pwm/pwmchip0.
++ */
++&pwm0 {
++	status = "disabled";
++};
++
+ &pwm0_4 {
+ 	pinctrl-names = "active", "sleep";
+ 	pinctrl-0 = <&pwm0_4_pins_active>;
+ 	pinctrl-1 = <&pwm0_4_pins_sleep>;
++	status = "disabled";
++};
++
++&pwm1_0 {
++	pinctrl-names = "active", "sleep";
++	pinctrl-0 = <&pwm1_0_pins_active>;
++	pinctrl-1 = <&pwm1_0_pins_sleep>;
+ 	status = "okay";
+ };
+ 
