@@ -1,16 +1,16 @@
 CUSTOM_ENV_DEFINITIONS := CFLAGS=-Wno-enum-int-mismatch
 CUSTOM_MAKE_DEFINITIONS := BSP_TOP=bsp/ LICHEE_KERN_DIR=./ KBUILD_DEFCONFIG=bsp.config
-KERNEL_DEFCONFIG := defconfig radxa.config radxa_custom.config loiterix_quiet.config loiterix_power.config loiterix_trim.config
+# Unified Loiterix fragment (quiet + power + trim). Applied last.
+KERNEL_DEFCONFIG := defconfig radxa.config radxa_custom.config loiterix.config
 SUPPORT_CLEAN := false
 ALLWINNER_FIXUP := src/bsp \
 	src/arch/arm64/configs/bsp.config \
-	src/arch/arm64/configs/loiterix_quiet.config \
-	src/arch/arm64/configs/loiterix_power.config \
-	src/arch/arm64/configs/loiterix_trim.config \
+	src/arch/arm64/configs/loiterix.config \
 	src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7a.dts \
 	src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7s.dts \
 	src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7z.dts \
 	src/arch/arm64/boot/dts/allwinner/sun60i-a733-cm-a7-rpi-cm5-io.dts \
+	src/arch/arm64/boot/dts/allwinner/loiterix.dtsi \
 	bsp/include/sunxi-autogen.h
 
 ALLWINNER_COPY := src/arch/arm64/boot/dts/allwinner src/include/dt-bindings
@@ -23,14 +23,8 @@ src/bsp: $(SRC-KERNEL)
 src/arch/arm64/configs/bsp.config: $(SRC-KERNEL)
 	ln -sf ../../../../device-a733/configs/default/linux-6.6/bsp_defconfig $@
 
-src/arch/arm64/configs/loiterix_quiet.config: $(SRC-KERNEL)
-	ln -sf ../../../../.github/local/configs/loiterix_quiet.config $@
-
-src/arch/arm64/configs/loiterix_power.config: $(SRC-KERNEL)
-	ln -sf ../../../../.github/local/configs/loiterix_power.config $@
-
-src/arch/arm64/configs/loiterix_trim.config: $(SRC-KERNEL)
-	ln -sf ../../../../.github/local/configs/loiterix_trim.config $@
+src/arch/arm64/configs/loiterix.config: $(SRC-KERNEL)
+	ln -sf ../../../../.github/local/configs/loiterix.config $@
 
 bsp/include/sunxi-autogen.h: $(SRC-KERNEL)
 	echo "#define AW_BSP_VERSION \"$(shell git log -n 1 --abbrev=10 --pretty=format:"%h"), $(shell date "+%Y-%m-%d %H:%M:%S"), RadxaOS SDK\"" > $@
@@ -41,8 +35,13 @@ src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7a.dts: $(SRC-KERNEL)
 src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7s.dts: $(SRC-KERNEL)
 	ln -sf ../../../../../../device-a733/configs/cubie_a7s/linux-6.6/board.dts $@
 
-src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7z.dts: $(SRC-KERNEL)
-	ln -sf ../../../../../../device-a733/configs/cubie_a7z/linux-6.6/board.dts $@
+# Cubie A7Z: stock Radxa board.dts + Loiterix overrides via loiterix.dtsi
+src/arch/arm64/boot/dts/allwinner/loiterix.dtsi: $(SRC-KERNEL)
+	ln -sf ../../../../../../.github/local/dts/loiterix.dtsi $@
+
+src/arch/arm64/boot/dts/allwinner/sun60i-a733-cubie-a7z.dts: $(SRC-KERNEL) src/arch/arm64/boot/dts/allwinner/loiterix.dtsi
+	cp -f device-a733/configs/cubie_a7z/linux-6.6/board.dts $@
+	grep -q 'loiterix.dtsi' $@ || printf '\n#include "loiterix.dtsi"\n' >> $@
 
 src/arch/arm64/boot/dts/allwinner/sun60i-a733-cm-a7-rpi-cm5-io.dts: $(SRC-KERNEL)
 	ln -sf ../../../../../../device-a733/configs/cm_a7_rpi_cm5_io/linux-6.6/board.dts $@
