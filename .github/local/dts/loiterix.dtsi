@@ -80,38 +80,6 @@
 		pins = "PE10", "PE11";
 		function = "gpio_in";
 	};
-
-	/* pwmchip0 ch0 = PD10 = 40-pin pin 24 (free of UART2/3 and I2S0) */
-	pwm1_0_pins_active: pwm1-0-pins-active {
-		pins = "PD10";
-		function = "pwm1_0";
-		drive-strength = <10>;
-	};
-
-	pwm1_0_pins_sleep: pwm1-0-pins-sleep {
-		pins = "PD10";
-		function = "gpio_in";
-		bias-pull-down;
-	};
-};
-
-/*
- * Allwinner pwm0 would claim pwmchip0; its ch0 is PB4 (I2S0 MCLK).
- * Disable pwm0 / pwm0_4 and expose pwm1_0 as sysfs pwmchip0 channel 0.
- */
-&pwm0 {
-	status = "disabled";
-};
-
-&pwm0_4 {
-	status = "disabled";
-};
-
-&pwm1_0 {
-	pinctrl-names = "active", "sleep";
-	pinctrl-0 = <&pwm1_0_pins_active>;
-	pinctrl-1 = <&pwm1_0_pins_sleep>;
-	status = "okay";
 };
 
 /* Sleep / unused: BCLK+LRCK+DIN only (no MCLK/DOUT for MEMS mic) */
