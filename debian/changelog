@@ -1,3 +1,11 @@
+linux-aw2511 (6.6.98-31) unstable; urgency=medium
+
+  [ Cursor Agent ]
+  * revert: drop Cubie sysfs PWM (CONFIG_PWM / AW_PWM and pwm1_0 on PD10);
+    payload servo is driven from the FC via MAVLink instead
+
+ -- "Radxa Computer Co., Ltd" <dev@radxa.com>  Thu, 26 Nov 2026 19:00:00 +0000
+
 linux-aw2511 (6.6.98-30) unstable; urgency=medium
 
   [ Cursor Agent ]
